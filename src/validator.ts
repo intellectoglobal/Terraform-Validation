@@ -8,7 +8,8 @@ async function fetchPolicies() {
         const response = await axios.get('https://policy-server.example.com/policies');
         return response.data;
     } catch (error) {
-        vscode.window.showErrorMessage('Failed to fetch policies.');
+        // vscode.window.showErrorMessage('Failed to fetch policies.');
+        console.log("faild to fetch policies.")
         return null;
     }
 }
