@@ -1,15 +1,34 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
+import * as fs from 'fs';
 const { exec } = require('child_process');
 
-
-async function fetchPolicies() {
+// Function to load validation policies from a local JSON file
+async function loadJsonPolicies(jsonPath: string, cloudProvider: string) {
     try {
-        const response = await axios.get('https://policy-server.example.com/policies');
-        return response.data;
+        const data = fs.readFileSync(jsonPath, 'utf8');
+        const formatedData = JSON.parse(data);
+        return formatedData[cloudProvider]
     } catch (error) {
-        // vscode.window.showErrorMessage('Failed to fetch policies.');
-        console.log("faild to fetch policies.")
+        vscode.window.showErrorMessage('Failed to load JSON policies.');
+        return null;
+    }
+}
+
+// Function to fetch policies from cloud providers
+async function fetchCloudPolicies(cloudProvider: 'aws' | 'azure') {
+    try {
+        let response;
+        if (cloudProvider === 'aws') {
+            // Fetch AWS-specific policies (this is just an example URL)
+            response = await axios.get('https://policy-server.aws.example.com/policies');
+        } else if (cloudProvider === 'azure') {
+            // Fetch Azure-specific policies (this is just an example URL)
+            response = await axios.get('https://policy-server.azure.example.com/policies');
+        }
+        return response?.data?response.data : "";
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to fetch ${cloudProvider.toUpperCase()} policies.`);
         return null;
     }
 }
@@ -29,29 +48,46 @@ const defaultPolicies = {
     },
 };
 
-export async function validateTerraformScript(document: vscode.TextDocument): Promise<string[]> {
+export async function validateTerraformScript(document: vscode.TextDocument, jsonFilePath?: string): Promise<string[]> {
     const text = document.getText();
-    console.log("Text from the Terraform script:", text);
     const issues: string[] = [];
-
+    
     // Determine the cloud provider based on the resource types present in the document
     let cloudProvider: 'aws' | 'azure' | null = null;
-
     if (text.includes('aws_')) {
         cloudProvider = 'aws';
     } else if (text.includes('azurerm_')) {
         cloudProvider = 'azure';
     } else {
         issues.push('No supported cloud provider found in the Terraform script.');
-        return issues; // Exit early if no cloud provider is detected
+        return issues;
     }
 
-    const policies = await fetchPolicies() || defaultPolicies[cloudProvider];
+    // Load policies: from JSON file, cloud provider, or default
+    let policies;
+    if (jsonFilePath) {
+        // Try loading policies from the provided JSON file
+        console.log("json file path ::", jsonFilePath)
+        policies = await loadJsonPolicies(jsonFilePath, cloudProvider);
+        if (!policies) {
+            vscode.window.showErrorMessage('Using default policies due to JSON loading failure.');
+        }
+    }
 
-    console.log("policies ::",policies)
+    if (!policies) {
+        // Try fetching policies from the cloud provider if JSON is not provided or failed
+        policies = await fetchCloudPolicies(cloudProvider);
+    }
 
+    if (!policies) {
+        // Fallback to default policies
+        policies = defaultPolicies[cloudProvider];
+    }
+
+    console.log("police to validate ::", policies)
+
+    // Validation logic based on cloud provider and policies
     if (cloudProvider === 'aws') {
-        // AWS validation
         const s3Resources = (text.match(/resource\s+"aws_s3_bucket"/g) || []).length;
         if (s3Resources < policies.s3_min) {
             issues.push(`At least ${policies.s3_min} S3 buckets required, found ${s3Resources}.`);
@@ -65,10 +101,9 @@ export async function validateTerraformScript(document: vscode.TextDocument): Pr
             issues.push(`At least ${policies.ec2_min} EC2 instances required, found ${ec2Resources}.`);
         }
         if (ec2Resources > policies.ec2_max) {
-            issues.push(`At most ${policies.aws.ec2_max} EC2 instances allowed, found ${ec2Resources}.`);
+            issues.push(`At most ${policies.ec2_max} EC2 instances allowed, found ${ec2Resources}.`);
         }
     } else if (cloudProvider === 'azure') {
-        // Azure validation
         const storageResources = (text.match(/resource\s+"azurerm_storage_account"/g) || []).length;
         if (storageResources < policies.storage_min) {
             issues.push(`At least ${policies.storage_min} Azure storage accounts required, found ${storageResources}.`);
@@ -88,60 +123,3 @@ export async function validateTerraformScript(document: vscode.TextDocument): Pr
 
     return issues;
 }
-
-export async function deployTerraformScript(document: vscode.TextDocument) {
-    const text = document.getText();
-
-    // Determine the cloud provider based on the resource types present in the document
-    let cloudProvider: 'aws' | 'azure' | null = null;
-
-    if (text.includes('aws_')) {
-        cloudProvider = 'aws';
-    } else if (text.includes('azurerm_')) {
-        cloudProvider = 'azure';
-    } else {
-        vscode.window.showErrorMessage('No supported cloud provider found in the Terraform script.');
-        return; // Exit early if no cloud provider is detected
-    }
-
-    if (cloudProvider === 'aws') {
-        // Deploy AWS Terraform script
-        vscode.window.showInformationMessage('Deploying AWS Terraform script...');
-        try {
-            // Use the AWS CLI to deploy
-            console.log("enterd in the aws deployment ")
-            exec('terraform init', (error: any, stdout: any, stderr: any) => {
-                if (error) {
-                    console.log("enterd in the aws deployment true statement ::", stderr)
-                    vscode.window.showErrorMessage(`Error deploying AWS resources: ${stderr}`);
-                    return;
-                }
-                console.log("enterd in the aws deployment flse statement ")
-                vscode.window.showInformationMessage(`AWS Deployment successful: ${stdout}`);
-            });
-        } catch (error) {
-            vscode.window.showErrorMessage('Failed to deploy AWS resources.');
-        }
-    } else if (cloudProvider === 'azure') {
-        // Deploy Azure Terraform script
-        console.log("enterd in the azure deployment ")
-        vscode.window.showInformationMessage('Deploying Azure Terraform script...');
-        try {
-            // Use the Azure CLI to deploy
-            const { exec } = require('child_process');
-            exec('terraform init', (error: any, stdout: any, stderr: any) => {
-                if (error) {
-                    console.log("enterd in the aws deployment true statement ::", stderr)
-                    vscode.window.showErrorMessage(`Error deploying Azure resources: ${stderr}`);
-                    return;
-                }
-                vscode.window.showInformationMessage(`Azure Deployment successful: ${stdout}`);
-                console.log("enterd in the aws deployment flse statement ")
-            });
-        } catch (error) {
-            vscode.window.showErrorMessage('Failed to deploy Azure resources.');
-        }
-    }
-}
-
-export function deactivate() { }

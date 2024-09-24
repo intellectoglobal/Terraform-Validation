@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { deployTerraformScript, validateTerraformScript } from "./validator";
+import { validateTerraformScript } from "./validator";
+import { deployTerraformScript } from "./deployment";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnostics = vscode.languages.createDiagnosticCollection("terraform");
@@ -12,7 +13,16 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (editor) {
         const document = editor.document;
-        const issues = await validateTerraformScript(document);
+
+        // Prompt user to optionally provide a JSON file path for validation
+        const jsonFilePath = await vscode.window.showInputBox({
+          prompt: "Enter path to JSON file for validation (optional)",
+          placeHolder: "Leave empty if no JSON file",
+          ignoreFocusOut: true,
+        });
+
+        // Pass the JSON file path to validateTerraformScript if provided
+        const issues = await validateTerraformScript(document, jsonFilePath || undefined);
 
         if (issues.length > 0) {
           vscode.window.showErrorMessage(
@@ -30,7 +40,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidSaveTextDocument(async (document) => {
     if (document.languageId === "terraform") {
-      const issues = await validateTerraformScript(document);
+      // Prompt user to optionally provide a JSON file path for validation when saving
+      const jsonFilePath = await vscode.window.showInputBox({
+        prompt: "Enter path to JSON file for validation (optional)",
+        placeHolder: "Leave empty if no JSON file",
+        ignoreFocusOut: true,
+      });
+
+      const issues = await validateTerraformScript(document, jsonFilePath);
       const diagnosticsArray: vscode.Diagnostic[] = [];
 
       issues.forEach((issue) => {
