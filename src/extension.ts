@@ -3,6 +3,8 @@ import { validateTerraformScript } from "./services/validator";
 import { deployTerraformScript } from "./services/deployment";
 import { TerraformValidationWebView } from "./UI/webview";
 import { getJsonFilePathService, storeJsonFilePathService, updateJsonFilePathService } from "./jsonRules/storeJsonrule";
+import { validateSyntaxUsingTflintService } from "./services/tflintService/tflint.Service";
+import { tfSecurityCheckService } from "./services/tfsecService/tfSec.Service";
 
 const JSON_FILE_KEY = 'jsonFilePath'; // Key to store JSON file path
 
@@ -12,6 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Function to validate the Terraform document
   const validateDocument = async (document: vscode.TextDocument) => {
+    // await validateSyntaxUsingTflintService(document)
+    await tfSecurityCheckService()
     const jsonFilePath = await getJsonFilePathService(context);
     const issues = await validateTerraformScript(document, jsonFilePath);
 
@@ -62,6 +66,8 @@ export function activate(context: vscode.ExtensionContext) {
     "toolbox.validateTerraform",
     async () => {
       const editor = vscode.window.activeTextEditor;
+      // geting the json file path to validate the tf file polices
+      await storeJsonFilePathService(context)
       if (editor) {
         const document = editor.document;
         const issues = await validateDocument(document);
