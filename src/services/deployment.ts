@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
+import logger from "../utils/logger";
 
 export async function deployTerraformScript(document: vscode.TextDocument) {
   const text = document.getText();
@@ -61,6 +62,7 @@ export async function deployTerraformScript(document: vscode.TextDocument) {
         console.log("enterd in the aws deployment false statement ");
       });
     } catch (error) {
+      logger.error("error occred in the deployTerraformScript azure section ::", error)
       vscode.window.showErrorMessage("Failed to deploy Azure resources.");
     }
   }

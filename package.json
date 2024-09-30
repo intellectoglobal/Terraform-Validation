@@ -16,6 +16,10 @@
       {
         "command": "toolbox.validateTerraform",
         "title": "Validate Terraform Script"
+      },
+      {
+        "command": "toolbox.updateJsonFilePath",
+        "title": "Update JSON File Path for Terraform Validation"
       }
     ]
   },
@@ -44,6 +48,7 @@
     "@cdktf/hcl2json": "^0.20.8",
     "axios": "^1.7.7",
     "hcl-to-json": "^0.1.1",
-    "hcl2-parser": "^1.0.3"
+    "hcl2-parser": "^1.0.3",
+    "winston": "^3.14.2"
   }
 }
