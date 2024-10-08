@@ -1,0 +1,42 @@
+{
+  "aws_s3_bucket": {
+    "required": ["versioning", "logging"],
+    "forbidden": ["public_access_block"]
+  },
+  "aws_instance": {
+    "required": ["instance_type", "ami"],
+    "forbidden": ["user_data"],
+    "conditions": {
+      "instance_type": {
+        "allowed_values": ["t2.micro", "t2.small", "t3.micro"]
+      },
+      "ami": {
+        "allowed_values": ["ami-12345678", "ami-87654321"]
+      }
+    }
+  },
+  "aws_security_group": {
+    "required": ["ingress", "egress"],
+    "forbidden": ["cidr_blocks"],
+    "conditions": {
+      "ingress": {
+        "protocol": {
+          "allowed_values": ["tcp", "udp"]
+        },
+        "from_port": {
+          "min_value": 1,
+          "max_value": 65535
+        }
+      },
+      "egress": {
+        "protocol": {
+          "allowed_values": ["tcp", "udp"]
+        },
+        "to_port": {
+          "min_value": 1,
+          "max_value": 65535
+        }
+      }
+    }
+  }
+}
