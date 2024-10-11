@@ -2,13 +2,13 @@ import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import React from 'react';
 
 const Sidebar: React.FC = () => {
-  const vscode = (window as any).acquireVsCodeApi();
+  // const vscode = (window as any).acquireVsCodeApi();
 
   function handleHowdyClick() {
-    vscode.postMessage({
-      command: "hello",
-      text: "your logged in! 🤠",
-    });
+    // vscode.postMessage({
+    //   command: "hello",
+    //   text: "your logged in! 🤠",
+    // });
   }
 
   return (
