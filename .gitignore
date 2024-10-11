@@ -1,0 +1,53 @@
+# Node.js / npm
+node_modules/
+dist/
+build/
+.vscode/
+out/
+
+# # VS Code
+# .vscode/*
+# !.vscode/extensions.json
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+
+# Optional: Yarn
+yarn.lock
+
+# Log files
+*.log
+
+# dotenv environment variable files
+.env
+.env.local
+.env.*.local
+
+# Mac OS files
+.DS_Store
+
+# Windows files
+Thumbs.db
+
+# Linux files
+*.swp
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE specific
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Vite specific
+.vite/
+
+# Coverage
+coverage/
+
+# Optional: ESLint
+eslint-disable/
+
+# Ignore compiled files and packages
+*.tgz
