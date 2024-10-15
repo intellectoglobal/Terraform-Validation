@@ -2,13 +2,13 @@ import React from 'react';
 import { VSCodeButton, VSCodeCheckbox, VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 
 const WebviewPanel: React.FC = () => {
-  const vscode = (window as any).acquireVsCodeApi();
+  // const vscode = (window as any).acquireVsCodeApi();
 
   const handleClick = () => {
-    vscode.postMessage({
-      command: 'webviewAction',
-      text: 'Action from Webview Panel!',
-    });
+    // vscode.postMessage({
+    //   command: 'webviewAction',
+    //   text: 'Action from Webview Panel!',
+    // });
   };
 
   return (

@@ -1,6 +1,6 @@
 {
-  "name": "terraform-Validation",
-  "displayName": "terraform-Validation",
+  "name": "hello-world-react-vite",
+  "displayName": "hello-world-react-vite",
   "description": "A hello world sample extension to demonstrate using React + Vite with the Webview UI Toolkit for VS Code.",
   "version": "0.0.1",
   "engines": {
@@ -32,7 +32,7 @@
     "commands": [
       {
         "command": "hello-world.showHelloWorld",
-        "title": "terraform-settings"
+        "title": "Hello World (React + Vite): Show"
       }
     ]
   },
